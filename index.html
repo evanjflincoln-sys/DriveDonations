@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DriveDonations</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0b0b0e;
+  --surface: #131318;
+  --surface2: #1c1c23;
+  --surface3: #24242d;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.13);
+  --text: #eeeef2;
+  --muted: #7a7a88;
+  --accent: #4ade80;
+  --accent2: #22c55e;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --amber: #fbbf24;
+  --red: #f87171;
+  --teal: #2dd4bf;
+  --radius: 14px;
+  --radius-sm: 9px;
+  --sidebar-w: 260px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+button{font-family:'DM Sans',sans-serif;cursor:pointer}
+
+/* ===== VIEWS ===== */
+.view{display:none}
+.view.active{display:block}
+
+/* ===== HOMEPAGE ===== */
+#homeView{min-height:100vh;display:flex;flex-direction:column}
+.home-hero{
+  background:linear-gradient(160deg,#0b0b0e 0%,#111120 100%);
+  border-bottom:1px solid var(--border);
+  padding:3rem 2rem 2.5rem;
+  text-align:center;
+}
+.home-logo{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:20px;font-weight:600;color:var(--accent);margin-bottom:2rem;
+}
+.home-logo svg{flex-shrink:0}
+.home-title{font-size:38px;font-weight:600;letter-spacing:-1px;line-height:1.15;margin-bottom:10px}
+.home-title span{color:var(--accent)}
+.home-sub{font-size:15px;color:var(--muted);margin-bottom:2rem;max-width:480px;margin-left:auto;margin-right:auto}
+.search-wrap{position:relative;max-width:520px;margin:0 auto}
+.search-wrap input{
+  width:100%;padding:14px 18px 14px 46px;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:99px;color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;
+  transition:border-color .15s,box-shadow .15s;
+}
+.search-wrap input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(74,222,128,.1)}
+.search-wrap input::placeholder{color:var(--muted)}
+.search-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+.search-results{
+  position:absolute;top:calc(100% + 8px);left:0;right:0;
+  background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);
+  z-index:50;overflow:hidden;display:none;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.search-results.open{display:block}
+.search-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;cursor:pointer;transition:background .12s;border-bottom:1px solid var(--border);
+}
+.search-item:last-child{border-bottom:none}
+.search-item:hover{background:var(--surface2)}
+.search-item-emoji{font-size:22px;flex-shrink:0}
+.search-item-info{}
+.search-item-name{font-size:14px;font-weight:600}
+.search-item-meta{font-size:12px;color:var(--muted)}
+.search-empty{padding:16px;text-align:center;font-size:13px;color:var(--muted)}
+.home-actions{display:flex;gap:10px;justify-content:center;margin-top:1.5rem;flex-wrap:wrap}
+.home-body{padding:2rem;max-width:900px;margin:0 auto;flex:1}
+.home-section-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:1rem}
+.featured-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.featured-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.1rem;cursor:pointer;transition:border-color .15s,transform .1s;
+}
+.featured-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.fc-emoji{font-size:28px;margin-bottom:10px}
+.fc-name{font-size:14px;font-weight:600;margin-bottom:3px}
+.fc-desc{font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.5}
+.progress-track{height:4px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden}
+.progress-fill{height:4px;border-radius:99px;background:var(--accent);transition:width .5s}
+.fc-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px}
+
+/* ===== ADMIN SHELL ===== */
+#adminView{display:flex;min-height:100vh}
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--surface);border-right:1px solid var(--border);
+  padding:1.5rem 1rem;
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sidebar-logo{
+  font-size:15px;font-weight:600;color:var(--accent);margin-bottom:2rem;
+  display:flex;align-items:center;gap:8px;
+}
+.nav-group-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;padding:0 8px;margin-top:1rem}
+.nav-group-label:first-of-type{margin-top:0}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 10px;border-radius:var(--radius-sm);
+  font-size:14px;color:var(--muted);
+  cursor:pointer;transition:all .15s;
+  margin-bottom:2px;border:none;background:none;width:100%;text-align:left;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--surface2);color:var(--text)}
+.nav-item.active .ndot{background:var(--accent)}
+.ndot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0}
+.nav-divider{height:1px;background:var(--border);margin:1rem 0}
+.sidebar-bottom{margin-top:auto;padding-top:1rem}
+.sidebar-back{
+  display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);
+  cursor:pointer;padding:8px 10px;border-radius:var(--radius-sm);transition:all .15s;
+  border:none;background:none;width:100%;
+}
+.sidebar-back:hover{background:var(--surface2);color:var(--text)}
+
+.main{flex:1;padding:2rem;overflow-x:hidden;min-width:0}
+.page-header{margin-bottom:1.75rem}
+.page-title{font-size:22px;font-weight:600;letter-spacing:-.4px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--muted)}
+.section{display:none}
+.section.active{display:block}
+
+/* ===== CARDS ===== */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+.card+.card{margin-top:1rem}
+.card-title{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.07em}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:1.5rem}
+.stat-card{background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px}
+.stat-val{font-size:22px;font-weight:600}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.05em}
+
+/* ===== BUTTONS ===== */
+.btn{
+  font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;
+  padding:9px 20px;border-radius:var(--radius-sm);
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text);cursor:pointer;transition:all .15s;
+}
+.btn:hover{background:var(--surface2)}
+.btn:active{transform:scale(.97)}
+.btn-sm{padding:6px 14px;font-size:13px}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+.btn-primary:hover{background:var(--accent2);border-color:var(--accent2)}
+.btn-blue{background:var(--blue);border-color:var(--blue);color:#000}
+.btn-blue:hover{background:#93c5fd;border-color:#93c5fd}
+.btn-purple{background:var(--purple);border-color:var(--purple);color:#000}
+.btn-purple:hover{background:#c4b5fd;border-color:#c4b5fd}
+.btn-amber{background:var(--amber);border-color:var(--amber);color:#000}
+.btn-amber:hover{background:#fcd34d;border-color:#fcd34d}
+.btn-danger{background:transparent;border-color:var(--red);color:var(--red)}
+.btn-danger:hover{background:rgba(248,113,113,.1)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--muted)}
+.btn-ghost:hover{color:var(--text);background:var(--surface2)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-row.center{justify-content:center}
+
+/* ===== FORMS ===== */
+.field{margin-bottom:14px}
+.field-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;display:block}
+input[type="text"],input[type="number"],input[type="url"],input[type="email"],select,textarea{
+  width:100%;padding:9px 12px;
+  background:var(--bg);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);color:var(--text);
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  transition:border-color .15s;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+input::placeholder,textarea::placeholder{color:var(--muted)}
+select{cursor:pointer}
+select option{background:var(--surface)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* ===== TIMER ===== */
+.timer-wrap{text-align:center;padding:1.5rem 0}
+.timer-big{
+  font-family:'DM Mono',monospace;
+  font-size:64px;font-weight:500;letter-spacing:-2px;
+  color:var(--text);line-height:1;transition:color .3s;
+}
+.timer-big.running{color:var(--accent)}
+.timer-big.urgent{color:var(--red)}
+.timer-status{font-size:13px;color:var(--muted);margin-top:8px;margin-bottom:1.5rem}
+.dur-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:1.5rem}
+.dur-btn{
+  font-family:'DM Sans',sans-serif;font-size:13px;
+  padding:6px 14px;border-radius:99px;
+  border:1px solid var(--border2);background:transparent;
+  color:var(--muted);cursor:pointer;transition:all .15s;
+}
+.dur-btn:hover{color:var(--text)}
+.dur-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600}
+
+/* ===== MODAL ===== */
+.modal-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.75);z-index:200;
+  align-items:flex-start;justify-content:center;overflow-y:auto;padding:2rem 1rem;
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:1.75rem;
+  width:100%;max-width:520px;margin:auto;
+}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.modal-title{font-size:17px;font-weight:600}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--text)}
+.modal-section-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin:1.25rem 0 .75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+
+/* ===== LINK BOX ===== */
+.link-box{
+  background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius-sm);
+  padding:10px 14px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);
+  display:flex;align-items:center;gap:8px;word-break:break-all;
+}
+.link-box span{flex:1}
+.copy-btn{
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;
+  padding:4px 10px;border-radius:6px;
+  border:1px solid var(--border2);background:transparent;color:var(--muted);
+  cursor:pointer;white-space:nowrap;flex-shrink:0;
+}
+.copy-btn:hover{color:var(--text)}
+
+/* ===== ORG DETAIL ===== */
+.org-detail-hero{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+  padding:1.5rem;margin-bottom:1rem;
+}
+.org-detail-top{display:flex;align-items:center;gap:14px;margin-bottom:1rem}
+.org-detail-emoji{font-size:40px;line-height:1}
+.org-detail-name{font-size:24px;font-weight:600;letter-spacing:-.4px}
+.org-detail-desc{font-size:13px;color:var(--muted);margin-top:2px}
+.org-detail-progress{margin-top:.75rem}
+.progress-track-lg{height:8px;background:rgba(255,255,255,.07);border-radius:99px;overflow:hidden;margin-bottom:8px}
+.progress-fill-lg{height:8px;border-radius:99px;background:var(--accent);transition:width .6s}
+.progress-labels{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.progress-labels strong{color:var(--text)}
+
+/* ===== PAYMENT TABS ===== */
+.pay-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:1.25rem;flex-wrap:wrap}
+.pay-tab{
+  font-size:13px;font-weight:500;padding:8px 14px;cursor:pointer;
+  color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;
+  background:none;border-top:none;border-left:none;border-right:none;
+  transition:color .15s;
+}
+.pay-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+.pay-tab:hover{color:var(--text)}
+.pay-section{display:none}
+.pay-section.active{display:block}
+
+/* ===== AMT GRID ===== */
+.amt-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.amt-btn{
+  padding:12px 4px;text-align:center;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius-sm);font-size:15px;font-weight:600;
+  cursor:pointer;color:var(--text);transition:all .15s;font-family:'DM Sans',sans-serif;
+}
+.amt-btn:hover{border-color:var(--border2)}
+.amt-btn.sel{border-color:var(--accent);color:var(--accent);background:rgba(74,222,128,.08)}
+
+/* ===== PUBLIC ORG PAGE ===== */
+#publicView{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.public-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:2rem;width:100%;max-width:420px;
+}
+.pub-logo{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:1.5rem;display:flex;align-items:center;gap:6px}
+.pub-org-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:99px;padding:4px 12px;font-size:13px;font-weight:500;margin-bottom:1rem;
+}
+.pub-title{font-size:21px;font-weight:600;letter-spacing:-.3px;margin-bottom:4px}
+.pub-desc{font-size:13px;color:var(--muted);margin-bottom:1rem}
+.pub-progress{margin-bottom:1.5rem}
+
+/* ===== CREATE ORG PANEL (sidebar drawer) ===== */
+.create-drawer{
+  display:none;position:fixed;top:0;right:0;bottom:0;width:380px;
+  background:var(--surface);border-left:1px solid var(--border2);
+  z-index:150;overflow-y:auto;padding:1.5rem;
+  transform:translateX(100%);transition:transform .25s ease;
+}
+.create-drawer.open{display:block;transform:translateX(0)}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.drawer-title{font-size:17px;font-weight:600}
+.drawer-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer}
+.drawer-close:hover{color:var(--text)}
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:140}
+.drawer-overlay.open{display:block}
+
+/* ===== BADGE ===== */
+.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;font-weight:600}
+.badge-green{background:rgba(74,222,128,.15);color:#4ade80}
+.badge-blue{background:rgba(96,165,250,.15);color:#60a5fa}
+.badge-amber{background:rgba(251,191,36,.15);color:#fbbf24}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:640px){
+  .sidebar{display:none}
+  .main{padding:1rem}
+  .timer-big{font-size:44px}
+  .field-row{grid-template-columns:1fr}
+  .create-drawer{width:100%}
+  .home-title{font-size:28px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===================== HOME VIEW ===================== -->
+<div id="homeView" class="view active">
+  <div class="home-hero">
+    <div class="home-logo">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="9" stroke="#4ade80" stroke-width="1.5"/>
+        <path d="M10 5.5v4.5l3 3" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      DriveDonations
+    </div>
+    <div class="home-title">Fundraise for what<br><span>matters to you</span></div>
+    <div class="home-sub">Search for an organization to donate to, or create your own fundraiser in minutes.</div>
+    <div class="search-wrap">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input type="text" id="homeSearch" placeholder="Search organizations…" autocomplete="off" oninput="handleHomeSearch()" onfocus="handleHomeSearch()" />
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <div class="home-actions">
+      <button class="btn btn-primary" onclick="openCreateDrawer()">+ Create organization</button>
+      <button class="btn" onclick="showAdminLogin()">Admin login</button>
+    </div>
+  </div>
+  <div class="home-body">
+    <div class="home-section-title">Featured fundraisers</div>
+    <div class="featured-grid" id="featuredGrid"></div>
+  </div>
+</div>
+
+<!-- ===================== PUBLIC ORG VIEW ===================== -->
+<div id="publicView" class="view">
+  <div class="public-card">
+    <div class="pub-logo">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10 5.5v4.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      DriveDonations
+    </div>
+    <div id="pubContent"></div>
+  </div>
+</div>
+
+<!-- ===================== ADMIN VIEW ===================== -->
+<div id="adminView" class="view">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+        <circle cx="10" cy="10" r="9" stroke="#4ade80" stroke-width="1.5"/>
+        <path d="M10 5.5v4.5l3 3" stroke="#4ade80" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      DriveDonations
+    </div>
+
+    <div class="nav-group-label">Dashboard</div>
+    <button class="nav-item active" onclick="adminNav('overview',this)">
+      <span class="ndot"></span> Overview
+    </button>
+    <button class="nav-item" onclick="adminNav('timer',this)">
+      <span class="ndot"></span> Timer
+    </button>
+    <button class="nav-item" onclick="adminNav('sharelink',this)">
+      <span class="ndot"></span> Share link
+    </button>
+
+    <div class="nav-divider"></div>
+    <div class="nav-group-label">Organizations</div>
+    <div id="orgNavList"></div>
+    <button class="nav-item" onclick="openCreateDrawer()" style="color:var(--accent);margin-top:4px">
+      <span class="ndot" style="background:var(--accent)"></span> + New org
+    </button>
+
+    <div class="sidebar-bottom">
+      <button class="sidebar-back" onclick="goHome()">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Back to home
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- OVERVIEW -->
+    <div id="sec-overview" class="section active">
+      <div class="page-header">
+        <div class="page-title">Overview</div>
+        <div class="page-sub">Select an organization from the sidebar to view its dashboard</div>
+      </div>
+      <div class="stat-row" id="adminStats"></div>
+      <div class="card">
+        <div class="card-title">All organizations</div>
+        <div id="adminOrgList"></div>
+      </div>
+    </div>
+
+    <!-- ORG DETAIL (per-org) -->
+    <div id="sec-orgdetail" class="section">
+      <div id="orgDetailContent"></div>
+    </div>
+
+    <!-- TIMER -->
+    <div id="sec-timer" class="section">
+      <div class="page-header">
+        <div class="page-title">Countdown timer</div>
+        <div class="page-sub">Run a live countdown for your fundraising event</div>
+      </div>
+      <div class="card">
+        <div class="dur-row">
+          <button class="dur-btn active" onclick="setDur(this,60)">1 hr</button>
+          <button class="dur-btn" onclick="setDur(this,90)">90 min</button>
+          <button class="dur-btn" onclick="setDur(this,120)">2 hrs</button>
+          <button class="dur-btn" onclick="setDur(this,180)">3 hrs</button>
+          <button class="dur-btn" onclick="setDur(this,240)">4 hrs</button>
+          <button class="dur-btn" onclick="setDur(this,360)">6 hrs</button>
+        </div>
+        <div class="timer-wrap">
+          <div class="timer-big" id="timerDisplay">1:00:00</div>
+          <div class="timer-status" id="timerStatus">Ready to start</div>
+          <div class="btn-row center">
+            <button class="btn btn-primary" id="startBtn" onclick="startTimer()">Start timer</button>
+            <button class="btn" id="pauseBtn" onclick="pauseTimer()" style="display:none">Pause</button>
+            <button class="btn btn-danger" id="resetBtn" onclick="resetTimer()" style="display:none">Reset</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Active org</div>
+        <div id="timerOrgInfo" style="font-size:14px;color:var(--muted)">Select an org from the sidebar first</div>
+      </div>
+    </div>
+
+    <!-- SHARE LINK -->
+    <div id="sec-sharelink" class="section">
+      <div class="page-header">
+        <div class="page-title">Share link</div>
+        <div class="page-sub">Generate a direct donation link for any organization</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Your site URL</div>
+        <div class="field">
+          <input type="url" id="siteUrl" placeholder="https://yourusername.github.io/drivedonations" oninput="refreshLink()" />
+        </div>
+        <div class="card-title" style="margin-top:.5rem">Select organization</div>
+        <div class="field">
+          <select id="linkOrgSel" onchange="refreshLink()">
+            <option value="">— pick an org —</option>
+          </select>
+        </div>
+        <div class="card-title" style="margin-top:.5rem">Generated link</div>
+        <div class="link-box">
+          <span id="genLink">Fill in the fields above</span>
+          <button class="copy-btn" onclick="copyLink()">Copy</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Deploy to GitHub Pages — free hosting</div>
+        <ol style="font-size:13px;color:var(--muted);line-height:2.2;padding-left:1.2rem">
+          <li>Download <code style="color:var(--accent);font-size:12px">index.html</code> from the file you were given</li>
+          <li>Go to <strong style="color:var(--text)">github.com</strong> and sign up free</li>
+          <li>Click <strong style="color:var(--text)">New repository</strong> → name it <code style="color:var(--accent);font-size:12px">drivedonations</code></li>
+          <li>Upload the file — it must be named <code style="color:var(--accent);font-size:12px">index.html</code></li>
+          <li><strong style="color:var(--text)">Settings → Pages → Source: main branch</strong> → Save</li>
+          <li>Live in ~60 seconds at <code style="color:var(--accent);font-size:12px">yourusername.github.io/drivedonations</code></li>
+        </ol>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ===================== CREATE ORG DRAWER ===================== -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeCreateDrawer()"></div>
+<div class="create-drawer" id="createDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title">Create organization</div>
+    <button class="drawer-close" onclick="closeCreateDrawer()">×</button>
+  </div>
+
+  <div class="modal-section-label">Basic info</div>
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label">Name *</label>
+      <input type="text" id="cName" placeholder="Soccer team" />
+    </div>
+    <div class="field">
+      <label class="field-label">Emoji icon</label>
+      <input type="text" id="cEmoji" placeholder="⚽" maxlength="4" />
+    </div>
+  </div>
+  <div class="field">
+    <label class="field-label">Short description</label>
+    <input type="text" id="cDesc" placeholder="Help us fund our season!" />
+  </div>
+  <div class="field-row">
+    <div class="field">
+      <label class="field-label">Fundraising goal ($) *</label>
+      <input type="number" id="cGoal" placeholder="2000" min="1" />
+    </div>
+    <div class="field">
+      <label class="field-label">Amount raised so far ($)</label>
+      <input type="number" id="cRaised" placeholder="0" value="0" min="0" />
+    </div>
+  </div>
+
+  <div class="modal-section-label">Payment methods</div>
+  <div class="field">
+    <label class="field-label">PayPal.me link</label>
+    <input type="url" id="cPaypal" placeholder="https://paypal.me/yourhandle" />
+  </div>
+  <div class="field">
+    <label class="field-label">Venmo handle</label>
+    <input type="text" id="cVenmo" placeholder="@YourVenmo" />
+  </div>
+  <div class="field">
+    <label class="field-label">Zelle — phone or email</label>
+    <input type="text" id="cZelle" placeholder="zelleuser@email.com or 555-555-5555" />
+  </div>
+  <div class="field">
+    <label class="field-label">Credit card — Stripe link (optional)</label>
+    <input type="url" id="cStripe" placeholder="https://buy.stripe.com/yourlink" />
+  </div>
+  <div class="field">
+    <label class="field-label">Credit card — manual instructions (if no Stripe)</label>
+    <input type="text" id="cCard" placeholder="e.g. Text us at 555-1234 with your card info" />
+  </div>
+
+  <div style="margin-top:1.5rem">
+    <button class="btn btn-primary" onclick="saveNewOrg()" style="width:100%">Create organization</button>
+  </div>
+  <div id="drawerError" style="color:var(--red);font-size:13px;margin-top:8px;display:none"></div>
+</div>
+
+<!-- ===================== ADMIN LOGIN MODAL ===================== -->
+<div class="modal-overlay" id="loginModal">
+  <div class="modal" style="max-width:360px">
+    <div class="modal-header">
+      <div class="modal-title">Admin login</div>
+      <button class="modal-close" onclick="closeLoginModal()">×</button>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:1rem">Enter the admin password to manage organizations and run the timer.</p>
+    <div class="field">
+      <label class="field-label">Password</label>
+      <input type="text" id="loginPw" placeholder="admin" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <div id="loginErr" style="color:var(--red);font-size:13px;margin-bottom:8px;display:none">Incorrect password</div>
+    <button class="btn btn-primary" onclick="doLogin()" style="width:100%">Log in</button>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;text-align:center">Default password: <code style="color:var(--accent)">admin</code></p>
+  </div>
+</div>
+
+<script>
+// ==================== STATE ====================
+let orgs = [
+  {id:1,name:"Drama club",emoji:"🎭",goal:2000,raised:640,desc:"Help fund our next production!",paypal:"https://paypal.me/placeholder",venmo:"@placeholder",zelle:"drama@school.edu",stripe:"",card:""},
+  {id:2,name:"Robotics team",emoji:"🤖",goal:3500,raised:1200,desc:"Building the future, one bot at a time.",paypal:"https://paypal.me/placeholder",venmo:"@placeholder",zelle:"robotics@school.edu",stripe:"",card:""},
+  {id:3,name:"Soccer team",emoji:"⚽",goal:1500,raised:980,desc:"New uniforms and travel costs.",paypal:"https://paypal.me/placeholder",venmo:"@placeholder",zelle:"soccer@school.edu",stripe:"",card:"Text 555-1234"},
+  {id:4,name:"Band & orchestra",emoji:"🎸",goal:5000,raised:2100,desc:"Instruments and competition fees.",paypal:"https://paypal.me/placeholder",venmo:"@placeholder",zelle:"band@school.edu",stripe:"",card:""},
+];
+let nextId = 5;
+let adminOrg = null; // currently selected org in admin
+
+let timerSecs = 3600, timerRem = 3600, timerRunning = false, timerIv = null;
+
+const ADMIN_PW = 'admin';
+
+// ==================== NAV ====================
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goHome() { showView('homeView'); renderHome(); }
+
+// ==================== HOME ====================
+function renderHome() {
+  const grid = document.getElementById('featuredGrid');
+  grid.innerHTML = orgs.map(o => {
+    const pct = Math.min(100, Math.round((o.raised/o.goal)*100));
+    return `<div class="featured-card" onclick="openPublicOrg(${o.id})">
+      <div class="fc-emoji">${o.emoji}</div>
+      <div class="fc-name">${o.name}</div>
+      <div class="fc-desc">${o.desc||''}</div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <div class="fc-meta"><span>$${o.raised.toLocaleString()} raised</span><span>${pct}% of $${o.goal.toLocaleString()}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function handleHomeSearch() {
+  const q = document.getElementById('homeSearch').value.toLowerCase().trim();
+  const box = document.getElementById('searchResults');
+  if (!q) { box.classList.remove('open'); return; }
+  const matches = orgs.filter(o => o.name.toLowerCase().includes(q) || (o.desc||'').toLowerCase().includes(q));
+  if (!matches.length) {
+    box.innerHTML = `<div class="search-empty">No organizations found for "${q}"</div>`;
+  } else {
+    box.innerHTML = matches.map(o => {
+      const pct = Math.min(100, Math.round((o.raised/o.goal)*100));
+      return `<div class="search-item" onclick="openPublicOrg(${o.id}); document.getElementById('searchResults').classList.remove('open')">
+        <div class="search-item-emoji">${o.emoji}</div>
+        <div class="search-item-info">
+          <div class="search-item-name">${o.name}</div>
+          <div class="search-item-meta">$${o.raised.toLocaleString()} raised · ${pct}%</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  box.classList.add('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.search-wrap')) document.getElementById('searchResults').classList.remove('open');
+});
+
+// ==================== PUBLIC ORG PAGE ====================
+let pubSelAmt = 25;
+let pubOrg = null;
+
+function openPublicOrg(id) {
+  pubOrg = orgs.find(o => o.id === id);
+  if (!pubOrg) return;
+  pubSelAmt = 25;
+  renderPublicPage();
+  showView('publicView');
+}
+
+function renderPublicPage() {
+  const o = pubOrg;
+  const pct = Math.min(100, Math.round((o.raised/o.goal)*100));
+  const amts = [10,25,50,100];
+
+  const paypalBtn = o.paypal ? `<button class="btn btn-primary" onclick="pubPay('paypal')" style="flex:1">PayPal</button>` : '';
+  const venmoBtn  = o.venmo  ? `<button class="btn btn-blue" onclick="pubPay('venmo')" style="flex:1">Venmo</button>` : '';
+  const zelleBtn  = o.zelle  ? `<button class="btn btn-amber" onclick="pubPay('zelle')" style="flex:1">Zelle</button>` : '';
+  const stripeBtn = o.stripe ? `<button class="btn btn-purple" onclick="pubPay('stripe')" style="flex:1">Credit card</button>` : '';
+
+  const zelleInfo = o.zelle ? `
+    <div id="pubZelleInfo" style="display:none;background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;font-size:13px">
+      <div style="color:var(--muted);margin-bottom:4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Zelle</div>
+      Send to: <strong style="color:var(--text)">${o.zelle}</strong><br>
+      <span style="color:var(--muted);font-size:12px">Include your name in the memo.</span>
+    </div>` : '';
+
+  const cardInfo = (o.card && !o.stripe) ? `
+    <div id="pubCardInfo" style="display:none;background:var(--surface2);border-radius:var(--radius-sm);padding:12px 14px;margin-top:10px;font-size:13px">
+      <div style="color:var(--muted);margin-bottom:4px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Credit card</div>
+      <span style="color:var(--text)">${o.card}</span>
+    </div>` : '';
+
+  const cardBtn = (o.card && !o.stripe) ? `<button class="btn" onclick="pubPay('card')" style="flex:1;border-color:var(--purple);color:var(--purple)">Credit card</button>` : '';
+
+  document.getElementById('pubContent').innerHTML = `
+    <button class="btn btn-ghost btn-sm" onclick="goHome()" style="margin-bottom:1rem;padding-left:0">← Back</button>
+    <div class="pub-org-badge">${o.emoji} ${o.name}</div>
+    <div class="pub-title">Support ${o.name}</div>
+    <div class="pub-desc">${o.desc||'Every dollar counts!'}</div>
+    <div class="pub-progress">
+      <div class="progress-track-lg"><div class="progress-fill-lg" style="width:${pct}%"></div></div>
+      <div class="progress-labels"><span><strong>$${o.raised.toLocaleString()}</strong> raised</span><span>Goal: <strong>$${o.goal.toLocaleString()}</strong></span></div>
+    </div>
+    <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Choose amount</div>
+    <div class="amt-grid" id="pubAmtGrid">
+      ${amts.map(a=>`<div class="amt-btn${a===pubSelAmt?' sel':''}" onclick="pubPickAmt(this,${a})">$${a}</div>`).join('')}
+    </div>
+    <div class="field">
+      <label class="field-label">Custom amount</label>
+      <input type="number" id="pubCustom" placeholder="$" min="1" oninput="pubClearAmts()" />
+    </div>
+    <div class="field">
+      <label class="field-label">Your name (optional)</label>
+      <input type="text" id="pubName" placeholder="Anonymous" />
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:.75rem">
+      ${paypalBtn}${venmoBtn}${zelleBtn}${cardBtn}${stripeBtn}
+    </div>
+    ${zelleInfo}${cardInfo}
+    <p style="font-size:11px;color:var(--muted);margin-top:12px;text-align:center">Powered by DriveDonations</p>`;
+}
+
+function pubPickAmt(el, amt) {
+  pubSelAmt = amt;
+  document.querySelectorAll('#pubAmtGrid .amt-btn').forEach(b => b.classList.remove('sel'));
+  el.classList.add('sel');
+  const c = document.getElementById('pubCustom');
+  if(c) c.value = '';
+}
+function pubClearAmts() {
+  pubSelAmt = null;
+  document.querySelectorAll('#pubAmtGrid .amt-btn').forEach(b => b.classList.remove('sel'));
+}
+function pubPay(method) {
+  const o = pubOrg;
+  const amt = document.getElementById('pubCustom')?.value || pubSelAmt || '';
+  if (method === 'paypal' && o.paypal) window.open(o.paypal + (amt ? `/${amt}USD` : ''), '_blank');
+  if (method === 'venmo'  && o.venmo)  window.open(`https://venmo.com/${o.venmo.replace('@','')}`, '_blank');
+  if (method === 'stripe' && o.stripe) window.open(o.stripe, '_blank');
+  if (method === 'zelle') {
+    const el = document.getElementById('pubZelleInfo');
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+  if (method === 'card') {
+    const el = document.getElementById('pubCardInfo');
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  }
+}
+
+// ==================== ADMIN ====================
+function showAdminLogin() {
+  document.getElementById('loginModal').classList.add('open');
+  setTimeout(() => document.getElementById('loginPw').focus(), 100);
+}
+function closeLoginModal() { document.getElementById('loginModal').classList.remove('open'); }
+function doLogin() {
+  const pw = document.getElementById('loginPw').value;
+  if (pw === ADMIN_PW) {
+    closeLoginModal();
+    showView('adminView');
+    renderAdminOverview();
+    renderOrgNav();
+    populateLinkSelect();
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+  }
+}
+
+function adminNav(sec, btn) {
+  document.querySelectorAll('#adminView .section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-' + sec).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+function renderOrgNav() {
+  document.getElementById('orgNavList').innerHTML = orgs.map(o =>
+    `<button class="nav-item" onclick="openAdminOrg(${o.id},this)"><span class="ndot"></span>${o.emoji} ${o.name}</button>`
+  ).join('');
+}
+
+function renderAdminOverview() {
+  const total = orgs.reduce((a,o)=>a+o.raised,0);
+  const totalGoal = orgs.reduce((a,o)=>a+o.goal,0);
+  document.getElementById('adminStats').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${orgs.length}</div><div class="stat-label">Orgs</div></div>
+    <div class="stat-card"><div class="stat-val">$${total.toLocaleString()}</div><div class="stat-label">Total raised</div></div>
+    <div class="stat-card"><div class="stat-val">$${totalGoal.toLocaleString()}</div><div class="stat-label">Combined goal</div></div>`;
+
+  document.getElementById('adminOrgList').innerHTML = orgs.map(o => {
+    const pct = Math.min(100,Math.round((o.raised/o.goal)*100));
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openAdminOrg(${o.id})">
+      <span style="font-size:22px">${o.emoji}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600">${o.name}</div>
+        <div style="font-size:12px;color:var(--muted)">$${o.raised.toLocaleString()} / $${o.goal.toLocaleString()} · ${pct}%</div>
+      </div>
+      <span style="font-size:12px;color:var(--muted)">→</span>
+    </div>`;
+  }).join('');
+}
+
+function openAdminOrg(id, btn) {
+  adminOrg = orgs.find(o => o.id === id);
+  if (!adminOrg) return;
+
+  document.querySelectorAll('#adminView .section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-orgdetail').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  renderOrgDetail(adminOrg);
+
+  // update timer org info
+  document.getElementById('timerOrgInfo').innerHTML =
+    `<span style="font-size:20px">${adminOrg.emoji}</span> <strong>${adminOrg.name}</strong> — goal $${adminOrg.goal.toLocaleString()}`;
+}
+
+function renderOrgDetail(o) {
+  const pct = Math.min(100, Math.round((o.raised/o.goal)*100));
+  const payMethods = [
+    o.paypal ? `<span class="badge badge-blue">PayPal</span>` : '',
+    o.venmo  ? `<span class="badge badge-blue">Venmo</span>` : '',
+    o.zelle  ? `<span class="badge badge-amber">Zelle</span>` : '',
+    o.stripe ? `<span class="badge badge-green">Credit card (Stripe)</span>` : '',
+    o.card   ? `<span class="badge" style="background:rgba(167,139,250,.15);color:#a78bfa">Credit card (manual)</span>` : '',
+  ].filter(Boolean).join(' ');
+
+  document.getElementById('orgDetailContent').innerHTML = `
+    <div class="page-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="page-title">${o.emoji} ${o.name}</div>
+        <button class="btn btn-sm" onclick="openEditOrg(${o.id})">Edit</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteOrg(${o.id})">Delete</button>
+      </div>
+      <div class="page-sub">${o.desc||''}</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-val" style="color:var(--accent)">$${o.raised.toLocaleString()}</div>
+        <div class="stat-label">Raised</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">$${o.goal.toLocaleString()}</div>
+        <div class="stat-label">Goal</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">${pct}%</div>
+        <div class="stat-label">Progress</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val">$${(o.goal - o.raised).toLocaleString()}</div>
+        <div class="stat-label">Remaining</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Progress</div>
+      <div class="progress-track-lg" style="margin-bottom:8px"><div class="progress-fill-lg" style="width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted)">
+        <span><strong style="color:var(--text)">$${o.raised.toLocaleString()}</strong> raised</span>
+        <span>Goal: <strong style="color:var(--text)">$${o.goal.toLocaleString()}</strong></span>
+      </div>
+      <div style="margin-top:1rem">
+        <label class="field-label">Update amount raised</label>
+        <div style="display:flex;gap:8px">
+          <input type="number" id="updateRaised" value="${o.raised}" min="0" style="max-width:160px" />
+          <button class="btn btn-primary btn-sm" onclick="updateRaisedAmt(${o.id})">Update</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Payment methods</div>
+      <div style="margin-bottom:12px">${payMethods || '<span style="color:var(--muted);font-size:13px">No payment methods added yet.</span>'}</div>
+      ${o.paypal ? `<div style="font-size:13px;margin-bottom:6px"><span style="color:var(--muted)">PayPal:</span> <span style="color:var(--text)">${o.paypal}</span></div>` : ''}
+      ${o.venmo  ? `<div style="font-size:13px;margin-bottom:6px"><span style="color:var(--muted)">Venmo:</span> <span style="color:var(--text)">${o.venmo}</span></div>` : ''}
+      ${o.zelle  ? `<div style="font-size:13px;margin-bottom:6px"><span style="color:var(--muted)">Zelle:</span> <span style="color:var(--text)">${o.zelle}</span></div>` : ''}
+      ${o.stripe ? `<div style="font-size:13px;margin-bottom:6px"><span style="color:var(--muted)">Stripe:</span> <span style="color:var(--text)">${o.stripe}</span></div>` : ''}
+      ${o.card   ? `<div style="font-size:13px;margin-bottom:6px"><span style="color:var(--muted)">Card (manual):</span> <span style="color:var(--text)">${o.card}</span></div>` : ''}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Donor page link</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Share this with donors — they'll see only this org's payment page.</p>
+      <div class="link-box">
+        <span id="orgShareLink">Set your site URL in Share Link tab first</span>
+        <button class="copy-btn" onclick="copyOrgLink()">Copy</button>
+      </div>
+    </div>`;
+
+  refreshOrgDetailLink(o);
+}
+
+function refreshOrgDetailLink(o) {
+  const base = document.getElementById('siteUrl')?.value.trim() || '';
+  const el = document.getElementById('orgShareLink');
+  if (el) el.textContent = base ? `${base}?org=${o.id}` : 'Set your site URL in the Share Link tab';
+}
+
+function updateRaisedAmt(id) {
+  const o = orgs.find(x => x.id === id);
+  const val = parseFloat(document.getElementById('updateRaised').value) || 0;
+  o.raised = val;
+  renderOrgDetail(o);
+  renderAdminOverview();
+  renderOrgNav();
+  renderHome();
+}
+
+function deleteOrg(id) {
+  if (!confirm('Delete this organization?')) return;
+  orgs = orgs.filter(o => o.id !== id);
+  adminOrg = null;
+  adminNav('overview', null);
+  renderAdminOverview();
+  renderOrgNav();
+  renderHome();
+  populateLinkSelect();
+}
+
+// ==================== EDIT ORG MODAL ====================
+let editingId = null;
+function openEditOrg(id) {
+  const o = orgs.find(x => x.id === id);
+  editingId = id;
+  // reuse drawer for editing
+  document.getElementById('cName').value = o.name;
+  document.getElementById('cEmoji').value = o.emoji;
+  document.getElementById('cDesc').value = o.desc||'';
+  document.getElementById('cGoal').value = o.goal;
+  document.getElementById('cRaised').value = o.raised;
+  document.getElementById('cPaypal').value = o.paypal||'';
+  document.getElementById('cVenmo').value = o.venmo||'';
+  document.getElementById('cZelle').value = o.zelle||'';
+  document.getElementById('cStripe').value = o.stripe||'';
+  document.getElementById('cCard').value = o.card||'';
+  document.querySelector('.drawer-title').textContent = 'Edit organization';
+  openCreateDrawer();
+}
+
+// ==================== CREATE / SAVE ORG ====================
+function openCreateDrawer() {
+  document.getElementById('createDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('drawerError').style.display = 'none';
+}
+function closeCreateDrawer() {
+  document.getElementById('createDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.querySelector('.drawer-title').textContent = 'Create organization';
+  editingId = null;
+  ['cName','cEmoji','cDesc','cGoal','cRaised','cPaypal','cVenmo','cZelle','cStripe','cCard'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = id === 'cRaised' ? '0' : '';
+  });
+}
+function saveNewOrg() {
+  const name   = document.getElementById('cName').value.trim();
+  const emoji  = document.getElementById('cEmoji').value.trim() || '🏆';
+  const desc   = document.getElementById('cDesc').value.trim();
+  const goal   = parseFloat(document.getElementById('cGoal').value) || 1000;
+  const raised = parseFloat(document.getElementById('cRaised').value) || 0;
+  const paypal = document.getElementById('cPaypal').value.trim();
+  const venmo  = document.getElementById('cVenmo').value.trim();
+  const zelle  = document.getElementById('cZelle').value.trim();
+  const stripe = document.getElementById('cStripe').value.trim();
+  const card   = document.getElementById('cCard').value.trim();
+
+  if (!name) {
+    const err = document.getElementById('drawerError');
+    err.textContent = 'Organization name is required.';
+    err.style.display = 'block';
+    return;
+  }
+
+  if (editingId) {
+    const o = orgs.find(x => x.id === editingId);
+    Object.assign(o, {name,emoji,desc,goal,raised,paypal,venmo,zelle,stripe,card});
+    renderOrgDetail(o);
+  } else {
+    orgs.push({id:nextId++,name,emoji,desc,goal,raised,paypal,venmo,zelle,stripe,card});
+  }
+
+  renderAdminOverview();
+  renderOrgNav();
+  renderHome();
+  populateLinkSelect();
+  closeCreateDrawer();
+}
+
+// ==================== TIMER ====================
+function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return`${h}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`}
+function updateTimerDisplay(){
+  const el=document.getElementById('timerDisplay');
+  el.textContent=fmt(timerRem);
+  el.className='timer-big'+(timerRunning?(timerRem<300?' urgent':' running'):'');
+}
+function setDur(btn,mins){
+  if(timerRunning)return;
+  timerSecs=mins*60;timerRem=timerSecs;
+  document.querySelectorAll('.dur-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  updateTimerDisplay();
+}
+function startTimer(){
+  if(timerRunning)return;
+  timerRunning=true;
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('pauseBtn').style.display='';
+  document.getElementById('resetBtn').style.display='';
+  document.getElementById('timerStatus').textContent='Timer running…';
+  timerIv=setInterval(()=>{
+    if(timerRem<=0){clearInterval(timerIv);timerRunning=false;document.getElementById('timerStatus').textContent='🎉 Time is up!';document.getElementById('pauseBtn').style.display='none';updateTimerDisplay();return;}
+    timerRem--;updateTimerDisplay();
+  },1000);
+}
+function pauseTimer(){
+  clearInterval(timerIv);timerRunning=false;
+  document.getElementById('startBtn').style.display='';
+  document.getElementById('startBtn').textContent='Resume';
+  document.getElementById('pauseBtn').style.display='none';
+  document.getElementById('timerStatus').textContent='Paused';
+  updateTimerDisplay();
+}
+function resetTimer(){
+  clearInterval(timerIv);timerRunning=false;timerRem=timerSecs;
+  document.getElementById('startBtn').style.display='';
+  document.getElementById('startBtn').textContent='Start timer';
+  document.getElementById('pauseBtn').style.display='none';
+  document.getElementById('resetBtn').style.display='none';
+  document.getElementById('timerStatus').textContent='Ready to start';
+  updateTimerDisplay();
+}
+
+// ==================== SHARE LINK ====================
+function populateLinkSelect(){
+  const sel=document.getElementById('linkOrgSel');
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— pick an org —</option>'+orgs.map(o=>`<option value="${o.id}">${o.emoji} ${o.name}</option>`).join('');
+  sel.value=cur;
+  refreshLink();
+}
+function refreshLink(){
+  const base=document.getElementById('siteUrl')?.value.trim()||'';
+  const oid=document.getElementById('linkOrgSel')?.value||'';
+  const el=document.getElementById('genLink');
+  if(!el)return;
+  if(!base){el.textContent='Fill in the fields above';return;}
+  el.textContent=base+(oid?`?org=${oid}`:'');
+  // also refresh org detail link if visible
+  if(adminOrg) refreshOrgDetailLink(adminOrg);
+}
+function copyLink(){
+  const txt=document.getElementById('genLink').textContent;
+  navigator.clipboard.writeText(txt).catch(()=>{});
+  const btn=document.querySelector('.copy-btn');
+  if(btn){btn.textContent='Copied!';setTimeout(()=>btn.textContent='Copy',1500);}
+}
+function copyOrgLink(){
+  const txt=document.getElementById('orgShareLink')?.textContent||'';
+  navigator.clipboard.writeText(txt).catch(()=>{});
+}
+
+// ==================== URL PARAM ====================
+function checkUrlParams(){
+  const p=new URLSearchParams(window.location.search);
+  const orgId=parseInt(p.get('org'));
+  if(orgId){
+    const o=orgs.find(x=>x.id===orgId);
+    if(o){openPublicOrg(orgId);return;}
+  }
+}
+
+// ==================== INIT ====================
+renderHome();
+updateTimerDisplay();
+checkUrlParams();
+</script>
+</body>
+</html>
